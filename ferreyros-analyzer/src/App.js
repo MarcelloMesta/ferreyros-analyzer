@@ -718,7 +718,7 @@ Extrae TODOS los KPIs relevantes: ingresos, utilidad neta, EBITDA, márgenes, li
         <div className="header">
           <div className="header-brand">
             <div className="header-logo-wrap">
-              <img src="/logo.png" alt="Ferreyros" className="header-logo" />
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 22, fontWeight: 700, color: C.dark, letterSpacing: "0.02em" }}>+Ferreyros</span>
             </div>
             <div className="header-title-wrap">
               <div className="header-title">Análisis de Resultados</div>
@@ -744,7 +744,9 @@ Extrae TODOS los KPIs relevantes: ingresos, utilidad neta, EBITDA, márgenes, li
           {!token ? (
             <div className="login-screen">
               <div className="login-card">
-                <img src="/logo.png" alt="Ferreyros" className="login-logo" />
+                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: 36, fontWeight: 700, color: C.dark, letterSpacing: "0.02em", marginBottom: 20 }}>
+                  <span style={{ background: C.yellow, padding: "4px 12px", borderRadius: 6 }}>+Ferreyros</span>
+                </div>
                 <div className="login-divider" />
                 <div className="login-title">Análisis de Resultados</div>
                 <div className="login-sub">
