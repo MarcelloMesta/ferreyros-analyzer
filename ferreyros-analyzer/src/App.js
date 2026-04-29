@@ -213,17 +213,30 @@ export default function App() {
       const file = d.files[0];
       const fr = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {headers:{Authorization:`Bearer ${t}`}});
       const blob = await fr.blob();
-      const b64 = await new Promise((res,rej) => { const rd = new FileReader(); rd.onload=()=>res(rd.result.split(",")[1]); rd.onerror=rej; rd.readAsDataURL(blob); });
+      
+      // Parse Excel with SheetJS
+      const arrayBuffer = await blob.arrayBuffer();
+      const XLSX = window.XLSX;
+      const workbook = XLSX.read(arrayBuffer, {type:"array"});
+      let excelText = "";
+      workbook.SheetNames.forEach(name => {
+        const sheet = workbook.Sheets[name];
+        excelText += `\n=== Hoja: ${name} ===\n`;
+        excelText += XLSX.utils.sheet_to_csv(sheet);
+      });
+      // Limit to 30000 chars
+      excelText = excelText.substring(0, 30000);
+
       const apiR = await fetch("https://ferreyros-api-proxy.marcello0209.workers.dev", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
           model:"claude-haiku-4-5-20251001", max_tokens:8000,
-          messages:[{role:"user", content:[
-            {type:"document", source:{type:"base64", media_type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", data:b64}},
-            {type:"text", text:`Extrae los datos financieros de este Excel de Ferreyros S.A. Devuelve SOLO un objeto JSON valido sin texto ni backticks con esta estructura:
+          messages:[{role:"user", content:`Extrae los datos financieros de este Excel de Ferreyros S.A. Devuelve SOLO un objeto JSON valido sin texto ni backticks con esta estructura exacta:
 {"periods":["Mar 2026","Feb 2026",...],"data":{"Mar 2026":{"ventas":num,"costoVentas":num,"utilidadBruta":num,"gastosVenta":num,"gastosAdmin":num,"utilidadOperativa":num,"ebitda":num,"utilidadNeta":num,"gastosFinancieros":num,"activoCorriente":num,"totalActivo":num,"pasivoCorriente":num,"totalPasivo":num,"patrimonio":num,"inventarios":num,"cxcComercial":num,"efectivo":num,"obligacionesFinancieras":num}}}
-Valores en miles de soles. Periodos ordenados cronologicamente ascendente. Nombres: "Mar 2026","Feb 2026","Ene 2026","Dic 2025" etc. Incluye TODOS los periodos.`}
-          ]}]
+Valores en miles de soles (S/000). Periodos ordenados cronologicamente ascendente (mas antiguo primero). Nombres legibles: "Mar 2026","Feb 2026","Ene 2026","Dic 2025" etc. Incluye TODOS los periodos disponibles.
+
+DATOS DEL EXCEL:
+${excelText}`}]
         })
       });
       const apiD = await apiR.json();
