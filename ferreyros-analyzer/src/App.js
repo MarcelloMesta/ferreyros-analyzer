@@ -214,7 +214,7 @@ export default function App() {
       const fr = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {headers:{Authorization:`Bearer ${t}`}});
       const blob = await fr.blob();
       const b64 = await new Promise((res,rej) => { const rd = new FileReader(); rd.onload=()=>res(rd.result.split(",")[1]); rd.onerror=rej; rd.readAsDataURL(blob); });
-      const apiR = await fetch("https://api.anthropic.com/v1/messages", {
+      const apiR = await fetch("https://ferreyros-api-proxy.marcello0209.workers.dev", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
           model:"claude-haiku-4-5-20251001", max_tokens:8000,
@@ -249,7 +249,7 @@ Valores en miles de soles. Periodos ordenados cronologicamente ascendente. Nombr
     setMsgs(prev => [...prev, {role:"user",content:question}]);
     setChatLoading(true);
     try {
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
+      const r = await fetch("https://ferreyros-api-proxy.marcello0209.workers.dev", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
           model:"claude-haiku-4-5-20251001", max_tokens:1000,
@@ -270,7 +270,7 @@ DATOS: ${excelCtx}`,
     setPptLoading(true); setPptResult(null);
     try {
       const sections = PPT_SECTIONS.filter(([k])=>pptSec[k]).map(([,v])=>v).join(", ");
-      const r = await fetch("https://api.anthropic.com/v1/messages", {
+      const r = await fetch("https://ferreyros-api-proxy.marcello0209.workers.dev", {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
           model:"claude-sonnet-4-20250514", max_tokens:4000,
