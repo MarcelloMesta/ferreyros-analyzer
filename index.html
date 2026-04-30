@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Agente Financiero · Ferreyros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://accounts.google.com/gsi/client" defer></script>
+<script src="https://apis.google.com/js/api.js" defer></script>
+<style>
+:root{
+  --y:#F5A800;--yd:#D4900A;--ydim:#F5A80012;
+  --dk:#111111;--dm:#1E1E1E;--ds:#2A2A2A;
+  --bg:#F4F1EC;--sf:#FFFFFF;--sa:#EFEBE3;--sb:#E8E2D8;
+  --br:#DDD7CB;--br2:#C8C0B0;
+  --tx:#111111;--tm:#6B6256;--td:#3D3830;--tl:#999;
+  --ok:#1A5C35;--ok2:#1A5C3512;
+  --dg:#B83232;--dg2:#B8323212;
+  --r:14px;--r2:10px;--r3:8px;
+  --sh:0 2px 12px #00000010;--sh2:0 8px 32px #00000018;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--tx);font-family:"Barlow",sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.hdr{background:var(--dk);display:flex;align-items:stretch;justify-content:space-between;position:sticky;top:0;z-index:300;box-shadow:0 1px 0 #ffffff08,0 4px 24px #00000040;height:56px;}
+.hdr-brand{display:flex;align-items:stretch;}
+.hdr-badge{background:var(--y);display:flex;align-items:center;padding:0 20px 0 18px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 100%,0 100%);min-width:160px;}
+.hdr-badge-txt{font-family:"Barlow Condensed",sans-serif;font-size:21px;font-weight:800;color:var(--dk);letter-spacing:-.5px;padding-right:6px;}
+.hdr-info{display:flex;flex-direction:column;justify-content:center;padding:0 0 0 22px;}
+.hdr-title{font-family:"Barlow Condensed",sans-serif;font-size:14px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.1em;line-height:1;}
+.hdr-sub{font-size:9px;color:var(--y);font-family:"DM Mono",monospace;letter-spacing:.15em;text-transform:uppercase;margin-top:3px;opacity:.85;}
+.hdr-right{display:flex;align-items:center;gap:14px;padding:0 20px;}
+.hdr-status{font-size:10px;color:#555;font-family:"DM Mono",monospace;display:flex;align-items:center;gap:6px;}
+.hdr-dot{width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;transition:background .3s;}
+.hdr-dot.ok{background:#2ECC71;}
+.hdr-dot.loading{background:var(--y);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.user-pill{display:none;align-items:center;gap:8px;background:var(--ds);border:1px solid #3A3A3A;border-radius:20px;padding:5px 12px 5px 6px;font-size:12px;color:#bbb;}
+.user-av{width:26px;height:26px;border-radius:50%;background:var(--y);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--dk);overflow:hidden;flex-shrink:0;}
+.user-av img{width:26px;height:26px;border-radius:50%;}
+.btn-out{background:none;border:none;cursor:pointer;color:#555;font-size:10px;font-family:"DM Mono",monospace;margin-left:4px;transition:color .15s;}
+.btn-out:hover{color:var(--dg);}
+.nav{background:var(--dm);border-top:1px solid #2E2E2E;display:none;padding:0 24px;}
+.nav-btn{background:none;border:none;border-bottom:2px solid transparent;padding:10px 18px;font-family:"Barlow Condensed",sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#666;cursor:pointer;transition:all .2s;}
+.nav-btn:hover{color:#aaa;}
+.nav-btn.on{color:var(--y);border-bottom-color:var(--y);}
+main{max-width:1360px;margin:0 auto;padding:28px 28px;}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:82vh;}
+.login-card{background:var(--sf);border:1px solid var(--br);border-radius:20px;padding:52px 56px;max-width:420px;width:100%;box-shadow:var(--sh2);text-align:center;position:relative;overflow:hidden;}
+.login-card::before{content:"";position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,var(--ydim) 0%,transparent 70%);}
+.login-logo{font-family:"Barlow Condensed",sans-serif;font-size:42px;font-weight:800;color:var(--dk);display:inline-block;background:var(--y);padding:6px 18px;border-radius:10px;margin-bottom:24px;letter-spacing:-.5px;}
+.login-divider{width:32px;height:3px;background:var(--y);margin:0 auto 20px;border-radius:2px;}
+.login-h{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;}
+.login-p{font-size:13px;color:var(--tm);line-height:1.75;margin-bottom:30px;}
+.btn-goog{display:flex;align-items:center;gap:11px;background:var(--dk);color:#fff;border:none;border-radius:11px;padding:14px 22px;font-size:13px;font-weight:600;font-family:"Barlow",sans-serif;cursor:pointer;width:100%;justify-content:center;transition:all .2s;}
+.btn-goog:hover:not(:disabled){background:#222;transform:translateY(-1px);box-shadow:0 6px 20px #00000025;}
+.btn-goog:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.goog-ico{width:18px;height:18px;flex-shrink:0;}
+.login-note{margin-top:16px;font-size:11px;color:var(--tl);font-family:"DM Mono",monospace;}
+.err-bar{padding:11px 16px;background:var(--dg2);border:1px solid var(--dg)33;border-left:3px solid var(--dg);border-radius:var(--r3);font-size:13px;color:var(--dg);margin-bottom:18px;display:none;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px;margin-bottom:24px;}
+.kpi{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);padding:18px 16px;border-top:3px solid var(--y);box-shadow:var(--sh);transition:box-shadow .2s,transform .15s;position:relative;overflow:hidden;}
+.kpi:hover{box-shadow:var(--sh2);transform:translateY(-1px);}
+.kpi-lbl{font-size:9.5px;color:var(--tm);font-family:"DM Mono",monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;}
+.kpi-val{font-size:24px;font-weight:700;font-family:"Barlow Condensed",sans-serif;color:var(--dk);line-height:1;}
+.kpi-d{font-size:10px;margin-top:6px;font-family:"DM Mono",monospace;}
+.up{color:var(--ok);}.dn{color:var(--dg);}.nn{color:var(--tl);}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px;}
+.chart-card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.chart-hdr{padding:14px 18px;border-bottom:1px solid var(--br);background:var(--sa);display:flex;align-items:center;gap:8px;}
+.chart-dot{width:8px;height:8px;border-radius:50%;background:var(--y);flex-shrink:0;}
+.chart-ttl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--td);font-family:"Barlow Condensed",sans-serif;}
+.chart-body{padding:14px;}
+.dash-empty{text-align:center;padding:80px 20px;color:var(--tm);}
+.dash-empty-icon{font-size:48px;margin-bottom:16px;opacity:.35;}
+.dash-empty-ttl{font-family:"Barlow Condensed",sans-serif;font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;color:var(--td);}
+.dash-empty-sub{font-size:13px;color:var(--tl);margin-bottom:24px;}
+.btn-load{display:inline-flex;align-items:center;gap:8px;background:var(--dk);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:13px;font-weight:600;font-family:"Barlow",sans-serif;cursor:pointer;transition:all .2s;border-left:3px solid var(--y);}
+.btn-load:hover:not(:disabled){background:#222;transform:translateY(-1px);}
+.btn-load:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.dash-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.dash-period{font-family:"Barlow Condensed",sans-serif;font-size:22px;font-weight:700;color:var(--dk);}
+.dash-period span{color:var(--y);}
+.btn-refresh{display:flex;align-items:center;gap:6px;background:var(--sa);border:1px solid var(--br);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;font-family:"Barlow",sans-serif;cursor:pointer;transition:all .2s;color:var(--td);}
+.btn-refresh:hover{border-color:var(--y);background:var(--ydim);}
+.chat-wrap{display:grid;grid-template-columns:240px 1fr;gap:18px;height:calc(100vh - 196px);}
+.chat-side{display:flex;flex-direction:column;gap:12px;overflow-y:auto;}
+.box{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.box-hdr-dk{padding:12px 16px;border-bottom:1px solid var(--br);background:var(--dk);}
+.box-hdr-lt{padding:12px 16px;border-bottom:1px solid var(--br);background:var(--sa);}
+.box-ttl-w{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#fff;font-family:"Barlow Condensed",sans-serif;}
+.box-ttl-d{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--td);font-family:"Barlow Condensed",sans-serif;}
+.box-body{padding:14px;}
+.sq{background:var(--sa);border:1px solid var(--br);border-radius:var(--r3);padding:8px 11px;font-size:11px;color:var(--td);cursor:pointer;width:100%;text-align:left;margin-bottom:6px;font-family:"Barlow",sans-serif;transition:border-color .15s,background .15s;line-height:1.4;}
+.sq:hover{border-color:var(--y);background:var(--ydim);}
+.chat-main{display:flex;flex-direction:column;background:var(--sf);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
+.bub{max-width:82%;padding:12px 16px;border-radius:14px;font-size:13px;line-height:1.75;}
+.bub.user{background:var(--dk);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+.bub.bot{background:var(--sa);border:1px solid var(--br);align-self:flex-start;border-bottom-left-radius:4px;color:var(--td);white-space:pre-wrap;}
+.chat-foot{padding:12px;border-top:1px solid var(--br);display:flex;gap:10px;background:var(--sa);}
+.chat-in{flex:1;background:var(--sf);border:1px solid var(--br);border-radius:10px;padding:9px 13px;font-family:"Barlow",sans-serif;font-size:13px;color:var(--tx);outline:none;resize:none;transition:border-color .2s;}
+.chat-in:focus{border-color:var(--y);box-shadow:0 0 0 3px var(--ydim);}
+.chat-in::placeholder{color:var(--tl);}
+.btn-send{background:var(--y);border:none;border-radius:10px;padding:9px 18px;cursor:pointer;font-size:14px;transition:all .2s;flex-shrink:0;}
+.btn-send:hover:not(:disabled){background:var(--yd);}
+.btn-send:disabled{opacity:.35;cursor:not-allowed;}
+.ppt-wrap{display:grid;grid-template-columns:260px 1fr;gap:18px;}
+.ppt-side{display:flex;flex-direction:column;gap:12px;}
+.btn-prim{width:100%;padding:14px;background:var(--dk);color:#fff;border:none;border-radius:11px;font-size:13px;font-weight:700;font-family:"Barlow Condensed",sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s;border-left:4px solid var(--y);}
+.btn-prim:hover:not(:disabled){background:#222;transform:translateY(-1px);}
+.btn-prim:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.btn-dl{width:100%;padding:12px;background:var(--ok);color:#fff;border:none;border-radius:11px;font-size:13px;font-weight:600;font-family:"Barlow",sans-serif;cursor:pointer;transition:all .2s;display:none;align-items:center;justify-content:center;gap:8px;}
+.btn-dl:hover{background:#145028;}
+.chk-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--sa);border:1px solid var(--br);border-radius:var(--r3);cursor:pointer;margin-bottom:7px;transition:border-color .15s;}
+.chk-row:hover{border-color:var(--y);}
+.chk-row.on{border-color:var(--y);background:var(--ydim);}
+.chk-box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--br2);background:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;transition:all .15s;}
+.chk-box.on{background:var(--y);border-color:var(--y);color:var(--dk);}
+.chk-lbl{font-size:12px;color:var(--td);}
+.ppt-main{background:var(--sf);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.ppt-main-hdr{padding:16px 20px;border-bottom:1px solid var(--br);background:var(--sa);display:flex;align-items:center;justify-content:space-between;}
+.slides-area{padding:20px;display:flex;flex-direction:column;gap:14px;max-height:70vh;overflow-y:auto;}
+.slide{border:1px solid var(--br);border-radius:10px;overflow:hidden;}
+.slide-hdr{background:var(--dk);padding:11px 16px;display:flex;align-items:center;gap:10px;}
+.slide-num{font-size:9px;font-family:"DM Mono",monospace;color:var(--y);letter-spacing:.1em;}
+.slide-ttl{font-size:12px;font-family:"Barlow Condensed",sans-serif;color:#fff;text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.slide-body{padding:14px 16px;}
+.slide-sub{font-size:11px;color:var(--tm);margin-bottom:10px;}
+.slide-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;}
+.slide-tbl th{padding:7px 10px;text-align:left;border-bottom:2px solid var(--y);font-size:9.5px;color:var(--tm);font-family:"DM Mono",monospace;font-weight:500;background:var(--sa);}
+.slide-tbl td{padding:7px 10px;border-bottom:1px solid var(--br);color:var(--td);}
+.slide-tbl tr:last-child td{border-bottom:none;}
+.slide-tbl tr:hover td{background:var(--sa);}
+.td-ok{color:var(--ok);font-family:"DM Mono",monospace;font-size:11px;font-weight:600;}
+.td-dg{color:var(--dg);font-family:"DM Mono",monospace;font-size:11px;font-weight:600;}
+.td-nn{color:var(--td);font-family:"DM Mono",monospace;font-size:11px;}
+.slide-cmts{background:var(--sa);border:1px solid var(--br);border-left:3px solid var(--y);border-radius:6px;padding:10px 13px;margin-top:4px;}
+.slide-cmts-lbl{font-size:9px;color:var(--tm);font-family:"DM Mono",monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.slide-cmt{font-size:12px;color:var(--td);line-height:1.65;margin-bottom:5px;padding-left:10px;position:relative;}
+.slide-cmt::before{content:"•";color:var(--y);position:absolute;left:0;font-weight:700;}
+.ppt-edit-area{border-top:1px solid var(--br);}
+.ppt-edit-hdr{padding:10px 16px;background:var(--dk);display:flex;align-items:center;gap:8px;}
+.ppt-edit-lbl{font-size:10px;font-family:"DM Mono",monospace;color:var(--y);text-transform:uppercase;letter-spacing:.1em;}
+.ppt-edit-msgs{max-height:160px;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;}
+.ppt-edit-foot{padding:10px 12px;border-top:1px solid var(--br);display:flex;gap:8px;background:var(--sa);}
+.ppt-edit-in{flex:1;background:var(--sf);border:1px solid var(--br);border-radius:8px;padding:8px 12px;font-family:"Barlow",sans-serif;font-size:12px;outline:none;resize:none;transition:border-color .2s;}
+.ppt-edit-in:focus{border-color:var(--y);}
+.ppt-edit-in::placeholder{color:var(--tl);}
+.btn-edit-send{background:var(--y);border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;transition:background .2s;flex-shrink:0;}
+.btn-edit-send:hover:not(:disabled){background:var(--yd);}
+.btn-edit-send:disabled{opacity:.35;cursor:not-allowed;}
+.no-data{text-align:center;padding:60px 20px;color:var(--tm);font-size:14px;}
+.no-data-icon{font-size:44px;margin-bottom:14px;opacity:.35;}
+.spin-sm{width:13px;height:13px;border:2px solid #fff3;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+.spin-dk{width:13px;height:13px;border:2px solid var(--br);border-top-color:var(--y);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ppt-note{font-size:10px;color:var(--tm);font-family:"DM Mono",monospace;text-align:center;display:none;margin-top:6px;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--br2);border-radius:4px;}
+#sec-login,#sec-app{display:none;}
+#tab-dash,#tab-chat,#tab-ppt{display:none;}
+#tab-dash.on,#tab-chat.on,#tab-ppt.on{display:block;}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-badge"><span class="hdr-badge-txt">+Ferreyros</span></div>
+    <div class="hdr-info">
+      <div class="hdr-title">Agente Financiero</div>
+      <div class="hdr-sub">Comite de Finanzas</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-status" id="hdr-status">
+      <div class="hdr-dot" id="hdr-dot"></div>
+      <span id="hdr-status-txt">Sin datos</span>
+    </div>
+    <div class="user-pill" id="user-pill">
+      <div class="user-av" id="user-av"></div>
+      <span id="user-email"></span>
+      <button class="btn-out" onclick="signOut()">salir</button>
+    </div>
+  </div>
+</header>
+<nav class="nav" id="main-nav">
+  <button class="nav-btn on" onclick="goTab('dash',this)">Dashboard</button>
+  <button class="nav-btn" onclick="goTab('chat',this)">Consultas</button>
+  <button class="nav-btn" onclick="goTab('ppt',this)">Presentacion</button>
+</nav>
+<main>
+  <section id="sec-login">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="login-logo">+Ferreyros</div>
+        <div class="login-divider"></div>
+        <div class="login-h">Agente Financiero</div>
+        <div class="login-p">Accede con tu cuenta corporativa para consultar los estados financieros del Comite de Finanzas.</div>
+        <button class="btn-goog" id="btn-login" onclick="signIn()" disabled>
+          <svg class="goog-ico" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Ingresar con Google
+        </button>
+        <div class="login-note">Acceso restringido · Solo usuarios autorizados</div>
+      </div>
+    </div>
+  </section>
+  <section id="sec-app">
+    <div class="err-bar" id="err-bar"></div>
+    <div id="tab-dash" class="on">
+      <div id="dash-empty" class="dash-empty">
+        <div class="dash-empty-icon">📊</div>
+        <div class="dash-empty-ttl">Dashboard Financiero</div>
+        <div class="dash-empty-sub">Carga los datos para ver KPIs y graficos del periodo mas reciente</div>
+        <button class="btn-load" id="btn-load-dash" onclick="loadData()">Cargar estados financieros</button>
+      </div>
+      <div id="dash-content" style="display:none">
+        <div class="dash-hdr">
+          <div class="dash-period">Periodo: <span id="dash-period-lbl"></span></div>
+          <button class="btn-refresh" onclick="loadData()">&#8635; Actualizar</button>
+        </div>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="charts-grid">
+          <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">Ventas Netas · 12 meses (S/M)</div></div><div class="chart-body"><canvas id="c-ventas" height="190"></canvas></div></div>
+          <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">Margenes · 12 meses (%)</div></div><div class="chart-body"><canvas id="c-margin" height="190"></canvas></div></div>
+          <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">EBITDA vs Utilidad Neta (S/M)</div></div><div class="chart-body"><canvas id="c-ebitda" height="190"></canvas></div></div>
+          <div class="chart-card"><div class="chart-hdr"><div class="chart-dot"></div><div class="chart-ttl">Activo vs Pasivo Corriente (S/M)</div></div><div class="chart-body"><canvas id="c-balance" height="190"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="tab-chat">
+      <div class="chat-wrap">
+        <div class="chat-side">
+          <div class="box">
+            <div class="box-hdr-dk"><div class="box-ttl-w">Preguntas frecuentes</div></div>
+            <div class="box-body" id="sugg-list"></div>
+          </div>
+          <div class="box">
+            <div class="box-hdr-lt"><div class="box-ttl-d">Fuentes activas</div></div>
+            <div class="box-body" id="chat-sources" style="font-size:11px;color:var(--tm);line-height:1.9;"></div>
+          </div>
+        </div>
+        <div class="chat-main">
+          <div class="box-hdr-dk" style="padding:12px 16px;display:flex;align-items:center;gap:8px;">
+            <div class="box-ttl-w">Consulta financiera</div>
+            <span style="font-size:9px;color:#444;font-family:'DM Mono',monospace;margin-left:auto;">claude-sonnet-4</span>
+          </div>
+          <div class="chat-msgs" id="chat-msgs"></div>
+          <div class="chat-foot">
+            <textarea class="chat-in" id="chat-in" placeholder="Pregunta sobre los estados financieros..." rows="2" onkeydown="chatKey(event)"></textarea>
+            <button class="btn-send" id="btn-send" onclick="sendChat()">&#10148;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="tab-ppt">
+      <div class="ppt-wrap">
+        <div class="ppt-side">
+          <div class="box">
+            <div class="box-hdr-dk"><div class="box-ttl-w">Secciones</div></div>
+            <div class="box-body" id="ppt-secs"></div>
+          </div>
+          <button class="btn-prim" id="btn-gen" onclick="generatePPT()">Generar Presentacion</button>
+          <div class="ppt-note" id="ppt-note">claude-sonnet · aprox. 40 seg.</div>
+          <button class="btn-dl" id="btn-dl" onclick="downloadPPTX()">&#8595; Descargar .pptx</button>
+        </div>
+        <div class="ppt-main">
+          <div class="ppt-main-hdr">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--td);text-transform:uppercase;letter-spacing:.06em;" id="ppt-hdr-ttl">Vista previa</div>
+            <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--tl);" id="ppt-hdr-sub"></div>
+          </div>
+          <div class="slides-area" id="slides-area">
+            <div class="no-data"><div class="no-data-icon">📑</div><div>Genera la presentacion para ver las laminas aqui</div></div>
+          </div>
+          <div class="ppt-edit-area" id="ppt-edit-area" style="display:none;">
+            <div class="ppt-edit-hdr"><div class="ppt-edit-lbl">✏ Solicitar cambios · claude-haiku</div></div>
+            <div class="ppt-edit-msgs" id="ppt-edit-msgs"></div>
+            <div class="ppt-edit-foot">
+              <textarea class="ppt-edit-in" id="ppt-edit-in" placeholder="Ej: Agrega mas detalle en la lamina de inventarios..." rows="2" onkeydown="editKey(event)"></textarea>
+              <button class="btn-edit-send" id="btn-edit-send" onclick="sendEdit()">&#10148;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+const CLIENT_ID="759880250891-13imean729fdjapr2tmbst0acjuivk8l.apps.googleusercontent.com";
+const SCOPES="https://www.googleapis.com/auth/drive.readonly";
+const FOLDER="1UPrIWI239diTZpWdhdvVAChU2EyFL4TD";
+const PROXY="https://ferreyros-api-proxy.marcello0209.workers.dev";
+const PPT_OPTS=[["esf","Estado de Situacion Financiera"],["er","Estado de Resultados"],["ebitda","EBITDA y Rentabilidad"],["variaciones","Analisis de Variaciones"],["indicadores","Indicadores Clave"],["cambio","Diferencia en Cambio"]];
+const SUGGESTED=["Como evolucionaron las ventas vs el mismo mes del ano anterior?","Cual es la tendencia del EBITDA en los ultimos 6 meses?","Como esta la posicion de liquidez corriente?","Explica las variaciones mas importantes del periodo","Cual es la situacion de la deuda financiera?","Analiza el comportamiento de los inventarios","Cual es la cobertura de intereses?","Como esta el margen bruto?"];
+let token=null,parsedData=null,excelCtx="",pdfB64s=[],latestP=null,prevP=null;
+let tokenClient=null,gapiOk=false,gisOk=false;
+let chatHist=[{r:"bot",t:"Hola, soy tu agente financiero de Ferreyros. Puedo responder preguntas sobre los estados financieros. Cuando estes listo, carga los datos desde el Dashboard."}];
+let chatBusy=false,dataLoading=false;
+let pptData=null,pptBusy=false,editBusy=false;
+let pptSecs={esf:true,er:true,ebitda:true,variaciones:true,indicadores:true,cambio:false};
+let editHist=[];
+let charts={};
+const $=id=>document.getElementById(id);
+function fmt(n){if(n==null||isNaN(n))return"—";const a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(1)+"B";if(a>=1e3)return(n/1e3).toFixed(1)+"M";return n.toFixed(0);}
+function pct(c,p){if(!p||p===0)return null;return((c-p)/Math.abs(p))*100;}
+function show(id){["sec-login","sec-app"].forEach(s=>$(s).style.display="none");$(id).style.display="block";}
+function goTab(name,btn){document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("on"));btn.classList.add("on");["tab-dash","tab-chat","tab-ppt"].forEach(t=>$(t).classList.remove("on"));$("tab-"+name).classList.add("on");}
+function showErr(msg){const b=$("err-bar");b.textContent="⚠ "+msg;b.style.display="block";setTimeout(()=>b.style.display="none",8000);}
+function setStatus(txt,state){$("hdr-status-txt").textContent=txt;const d=$("hdr-dot");d.className="hdr-dot"+(state?" "+state:"");}
+
+function initAuth(){
+  const iv=setInterval(()=>{
+    if(window.gapi&&window.google){
+      clearInterval(iv);
+      gapi.load("client",()=>{gapi.client.init({}).then(()=>{gapiOk=true;tryReady();});});
+      tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:CLIENT_ID,scope:SCOPES,
+        callback:async r=>{
+          if(r.error){showErr("Error de autenticacion: "+r.error);return;}
+          token=r.access_token;
+          await fetchUser();
+          show("sec-app");
+          $("main-nav").style.display="flex";
+          initUI();
+        }
+      });
+      gisOk=true;tryReady();
+    }
+  },400);
+}
+function tryReady(){if(gapiOk&&gisOk){$("btn-login").disabled=false;show("sec-login");}}
+function signIn(){if(gapiOk&&gisOk)tokenClient.requestAccessToken({prompt:"consent"});}
+function signOut(){if(token)google.accounts.oauth2.revoke(token);token=null;parsedData=null;excelCtx="";pdfB64s=[];latestP=null;prevP=null;pptData=null;$("user-pill").style.display="none";$("main-nav").style.display="none";show("sec-login");}
+async function fetchUser(){
+  try{
+    const r=await fetch("https://www.googleapis.com/oauth2/v3/userinfo",{headers:{Authorization:`Bearer ${token}`}});
+    const d=await r.json();
+    const av=$("user-av");av.innerHTML=d.picture?`<img src="${d.picture}" alt="">`:d.name?.[0]||"U";
+    $("user-email").textContent=d.email;$("user-pill").style.display="flex";
+  }catch{}
+}
+
+async function callAPI(model,maxTok,messages,system){
+  const body={model,max_tokens:maxTok,messages};
+  if(system)body.system=system;
+  const r=await fetch(PROXY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok){const e=await r.json();throw new Error(e.error?.message||"API error "+r.status);}
+  return r.json();
+}
+
+
+// ═══════════ EXCEL DIRECT PARSER — Ferreyros specific ═══════════
+function parseExcelDirect(wb) {
+  function toNum(v) {
+    if(v===null||v===undefined||v==="")return 0;
+    const n=parseFloat(String(v).replace(/[,\s]/g,""));
+    return isNaN(n)?0:Math.round(n);
+  }
+
+  function parsePeriodLabel(v) {
+    if(!v)return null;
+    const s=String(v).replace(/\n/g," ").trim();
+    const MONTHS={
+      "enero":"Ene","febrero":"Feb","marzo":"Mar","abril":"Abr","mayo":"May","junio":"Jun",
+      "julio":"Jul","agosto":"Ago","setiembre":"Sep","septiembre":"Sep","octubre":"Oct",
+      "noviembre":"Nov","diciembre":"Dic",
+      "ene":"Ene","feb":"Feb","mar":"Mar","abr":"Abr","jun":"Jun",
+      "jul":"Jul","ago":"Ago","sep":"Sep","oct":"Oct","nov":"Nov","dic":"Dic"
+    };
+    // "Al 31 de Marzo 2026" style
+    const m1=s.match(/Al\s+\d+\s+de\s+([a-záéíóú]+)\s+(\d{4})/i);
+    if(m1){const mon=MONTHS[m1[1].toLowerCase()];if(mon)return `${mon} ${m1[2]}`;}
+    // "Al 31 de Marzo de 2026" style
+    const m2=s.match(/Al\s+\d+\s+de\s+([a-záéíóú]+)\s+de\s+(\d{4})/i);
+    if(m2){const mon=MONTHS[m2[1].toLowerCase()];if(mon)return `${mon} ${m2[2]}`;}
+    // Date object "2026-03-31"
+    if(s.match(/^\d{4}-\d{2}-\d{2}/)){
+      const parts=s.split("-");
+      const months2=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+      return `${months2[parseInt(parts[1])-1]} ${parts[0]}`;
+    }
+    // "31/12/2025" or "30-11-2025"
+    const m3=s.match(/(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+    if(m3){
+      const months3=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+      return `${months3[parseInt(m3[2])-1]} ${m3[3]}`;
+    }
+    return null;
+  }
+
+  // Try Estado de Resultados sheet (main ER data)
+  const ER_SHEET = "ESTADO DE RESULTADOS";
+  const ESF_SHEET = "ESTADO DE SITUACION FINANCI ";
+  
+  if(!wb.SheetNames.includes(ER_SHEET) && !wb.SheetNames.includes(ESF_SHEET)){
+    // Fallback: use generic parser
+    return parseExcelGeneric(wb);
+  }
+
+  // Read ER sheet
+  const erSheet = wb.Sheets[ER_SHEET] || wb.Sheets[wb.SheetNames.find(n=>n.includes("RESULTADOS"))];
+  const esfSheet = wb.Sheets[ESF_SHEET] || wb.Sheets[wb.SheetNames.find(n=>n.includes("SITUACION"))];
+  
+  const erRows = erSheet ? XLSX.utils.sheet_to_json(erSheet, {header:1, defval:null}) : [];
+  const esfRows = esfSheet ? XLSX.utils.sheet_to_json(esfSheet, {header:1, defval:null}) : [];
+
+  // Find period row in ER (row 5, index 4) and ESF (row 4, index 3)
+  const erPeriodRow = erRows[4] || [];   // Row 5 in Excel
+  const esfPeriodRow = esfRows[3] || []; // Row 4 in Excel
+
+  // Extract periods from ER sheet (skip col 0 which is labels, stop at "Variación")
+  const periods = [];
+  const colMap = {}; // period label -> col index
+  
+  for(let c=1; c<erPeriodRow.length; c++){
+    const lbl = parsePeriodLabel(erPeriodRow[c]);
+    if(lbl && !colMap[lbl] && !String(erPeriodRow[c]).includes("Variaci")){
+      colMap[lbl] = c;
+      periods.push(lbl);
+    }
+  }
+
+  // Reverse to get ascending order (Excel has newest first)
+  periods.reverse();
+
+  if(!periods.length) return parseExcelGeneric(wb);
+
+  // Helper to get row values by keyword
+  function getRowVals(rows, keywords) {
+    for(const row of rows){
+      const label = String(row[0]||"").toLowerCase().trim();
+      if(keywords.some(kw=>label.includes(kw.toLowerCase()))){
+        return row;
+      }
+    }
+    return null;
+  }
+
+  function getVal(row, period) {
+    if(!row) return 0;
+    const col = colMap[period];
+    if(col===undefined) return 0;
+    return toNum(row[col]);
+  }
+
+  // ER rows (Excel row numbers, 0-indexed: row 8 = index 7)
+  const erVentas        = getRowVals(erRows, ["ventas netas"]);
+  const erCosto         = getRowVals(erRows, ["costo de ventas"]);
+  const erUB            = getRowVals(erRows, ["utilidad bruta","ganancia (pérdida) b"]);
+  const erGVenta        = getRowVals(erRows, ["gastos de venta"]);
+  const erGAdmin        = getRowVals(erRows, ["gastos administrat"]);
+  const erUO            = getRowVals(erRows, ["utilidad operativa","resultado operativo"]);
+  const erGF            = getRowVals(erRows, ["gastos financieros"]);
+  const erUN            = getRowVals(erRows, ["utilidad neta de o","utilidad (pérdida)"]);
+  const erEBITDA        = getRowVals(erRows, ["ebitda"]);
+
+  // ESF rows  
+  const esfEfectivo     = getRowVals(esfRows, ["efectivo y equival"]);
+  const esfCxC          = getRowVals(esfRows, ["cuentas por cobrar c"]);
+  const esfInventarios  = getRowVals(esfRows, ["inventarios"]);
+  const esfActCte       = getRowVals(esfRows, ["total activo corri"]);
+  const esfTotalActivo  = getRowVals(esfRows, ["total activo"]);
+  const esfOblCte       = getRowVals(esfRows, ["obligaciones finan"]);
+  const esfPasCte       = getRowVals(esfRows, ["total pasivo corri"]);
+  const esfTotalPasivo  = getRowVals(esfRows, ["total pasivo"]);
+  const esfPatrimonio   = getRowVals(esfRows, ["total patrimonio n"]);
+
+  // ESF uses different column mapping (text period labels)
+  const esfColMap = {};
+  for(let c=1; c<esfPeriodRow.length; c++){
+    const lbl = parsePeriodLabel(esfPeriodRow[c]);
+    if(lbl && !esfColMap[lbl] && !String(esfPeriodRow[c]).includes("Variaci")){
+      esfColMap[lbl] = c;
+    }
+  }
+
+  function getEsfVal(row, period) {
+    if(!row) return 0;
+    const col = esfColMap[period];
+    if(col===undefined) return 0;
+    return toNum(row[col]);
+  }
+
+  // Build data object
+  const data = {};
+  periods.forEach(p => {
+    const ventas = Math.abs(getVal(erVentas, p));
+    const costo  = Math.abs(getVal(erCosto, p));
+    const ub     = getVal(erUB, p) || (ventas - costo);
+    data[p] = {
+      ventas,
+      costoVentas: costo,
+      utilidadBruta: ub,
+      gastosVenta: Math.abs(getVal(erGVenta, p)),
+      gastosAdmin: Math.abs(getVal(erGAdmin, p)),
+      utilidadOperativa: getVal(erUO, p),
+      ebitda: getVal(erEBITDA, p),
+      utilidadNeta: getVal(erUN, p),
+      gastosFinancieros: Math.abs(getVal(erGF, p)),
+      activoCorriente: Math.abs(getEsfVal(esfActCte, p)),
+      totalActivo: Math.abs(getEsfVal(esfTotalActivo, p)),
+      pasivoCorriente: Math.abs(getEsfVal(esfPasCte, p)),
+      totalPasivo: Math.abs(getEsfVal(esfTotalPasivo, p)),
+      patrimonio: getEsfVal(esfPatrimonio, p),
+      inventarios: Math.abs(getEsfVal(esfInventarios, p)),
+      cxcComercial: Math.abs(getEsfVal(esfCxC, p)),
+      efectivo: Math.abs(getEsfVal(esfEfectivo, p)),
+      obligacionesFinancieras: Math.abs(getEsfVal(esfOblCte, p)),
+    };
+  });
+
+  return {periods, data};
+}
+
+function parseExcelGeneric(wb) {
+  // Simple fallback - return empty
+  return {periods:[], data:{}};
+}
+
+async function loadData(){
+  if(dataLoading)return;
+  dataLoading=true;
+  const btn=$("btn-load-dash");
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin-dk"></span>Cargando...';}
+  setStatus("Cargando datos...","loading");
+  try{
+    const q=`'${FOLDER}' in parents and name contains 'Ferreyros_SA_al'`;
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&orderBy=name+desc&pageSize=10&fields=files(id,name,mimeType)`,{headers:{Authorization:`Bearer ${token}`}});
+    const d=await r.json();
+    const files=d.files||[];
+    const xlsxFile=files.find(f=>f.mimeType==="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    const pdfFiles=files.filter(f=>f.mimeType==="application/pdf");
+    if(!xlsxFile){showErr("No se encontro Excel Ferreyros_SA_al_*.xlsx en Drive");dataLoading=false;if(btn){btn.disabled=false;btn.innerHTML="Cargar estados financieros";}return;}
+    setStatus("Procesando Excel...","loading");
+    const fr=await fetch(`https://www.googleapis.com/drive/v3/files/${xlsxFile.id}?alt=media`,{headers:{Authorization:`Bearer ${token}`}});
+    const ab=await fr.arrayBuffer();
+    const wb=XLSX.read(ab,{type:"array"});
+
+    // Parsear directamente con SheetJS — sin llamada a API, instantaneo
+    parsedData = parseExcelDirect(wb);
+    if(!parsedData||!parsedData.periods?.length) throw new Error("No se pudieron extraer datos del Excel. Verifica el formato del archivo.");
+    excelCtx=JSON.stringify(parsedData).substring(0,10000);
+    const ps=parsedData.periods||[];
+    if(ps.length){latestP=ps[ps.length-1];prevP=ps[ps.length-2]||null;}
+    if(pdfFiles.length>0){
+      setStatus("Cargando PDFs de referencia...","loading");
+      pdfB64s=[];
+      for(const pf of pdfFiles.slice(0,3)){
+        try{
+          const pr=await fetch(`https://www.googleapis.com/drive/v3/files/${pf.id}?alt=media`,{headers:{Authorization:`Bearer ${token}`}});
+          const pb=await pr.blob();
+          const b64=await new Promise((res,rej)=>{const rd=new FileReader();rd.onload=()=>res(rd.result.split(",")[1]);rd.onerror=rej;rd.readAsDataURL(pb);});
+          pdfB64s.push({name:pf.name,b64});
+        }catch{}
+      }
+    }
+    buildDash();
+    updateChatSources();
+    setStatus(`Datos al ${latestP}`,"ok");
+    $("btn-gen").disabled=false;
+    chatHist=[{r:"bot",t:`Datos cargados al ${latestP}. ${pdfB64s.length>0?`Tengo ${pdfB64s.length} PDF(s) de referencia. `:""}Puedo responder preguntas sobre los estados financieros.`}];
+    renderChat();
+  }catch(err){showErr("Error: "+err.message);setStatus("Error al cargar","");}
+  dataLoading=false;
+  if(btn){btn.disabled=false;btn.innerHTML="Cargar estados financieros";}
+}
+
+function buildDash(){
+  if(!parsedData){return;}
+  $("dash-empty").style.display="none";
+  $("dash-content").style.display="block";
+  $("dash-period-lbl").textContent=latestP;
+  const pd=parsedData.data,lp=latestP,pp=prevP;
+  const kpis=[
+    {l:"Ventas Netas",v:`S/ ${fmt(pd[lp]?.ventas)}M`,d:pct(pd[lp]?.ventas,pd[pp]?.ventas),inv:false},
+    {l:"Utilidad Bruta",v:`S/ ${fmt(pd[lp]?.utilidadBruta)}M`,d:pct(pd[lp]?.utilidadBruta,pd[pp]?.utilidadBruta),inv:false},
+    {l:"Margen Bruto",v:pd[lp]?.ventas?((pd[lp].utilidadBruta/pd[lp].ventas)*100).toFixed(1)+"%":"—",d:null},
+    {l:"EBITDA",v:`S/ ${fmt(pd[lp]?.ebitda)}M`,d:pct(pd[lp]?.ebitda,pd[pp]?.ebitda),inv:false},
+    {l:"Margen EBITDA",v:pd[lp]?.ventas?((pd[lp].ebitda/pd[lp].ventas)*100).toFixed(1)+"%":"—",d:null},
+    {l:"Utilidad Operativa",v:`S/ ${fmt(pd[lp]?.utilidadOperativa)}M`,d:pct(pd[lp]?.utilidadOperativa,pd[pp]?.utilidadOperativa),inv:false},
+    {l:"Utilidad Neta",v:`S/ ${fmt(pd[lp]?.utilidadNeta)}M`,d:pct(pd[lp]?.utilidadNeta,pd[pp]?.utilidadNeta),inv:false},
+    {l:"Total Activo",v:`S/ ${fmt(pd[lp]?.totalActivo)}M`,d:pct(pd[lp]?.totalActivo,pd[pp]?.totalActivo),inv:false},
+    {l:"Patrimonio",v:`S/ ${fmt(pd[lp]?.patrimonio)}M`,d:pct(pd[lp]?.patrimonio,pd[pp]?.patrimonio),inv:false},
+    {l:"Liquidez Corriente",v:pd[lp]?.pasivoCorriente?(pd[lp].activoCorriente/pd[lp].pasivoCorriente).toFixed(2)+"x":"—",d:null},
+    {l:"Deuda / Patrimonio",v:pd[lp]?.patrimonio?(pd[lp].totalPasivo/pd[lp].patrimonio).toFixed(2)+"x":"—",d:null,inv:true},
+    {l:"Inventarios",v:`S/ ${fmt(pd[lp]?.inventarios)}M`,d:pct(pd[lp]?.inventarios,pd[pp]?.inventarios),inv:true},
+    {l:"CxC Comercial",v:`S/ ${fmt(pd[lp]?.cxcComercial)}M`,d:pct(pd[lp]?.cxcComercial,pd[pp]?.cxcComercial),inv:true},
+    {l:"Gastos Financieros",v:`S/ ${fmt(pd[lp]?.gastosFinancieros)}M`,d:pct(pd[lp]?.gastosFinancieros,pd[pp]?.gastosFinancieros),inv:true},
+  ];
+  $("kpi-grid").innerHTML=kpis.map(k=>{
+    const isUp=k.d!==null&&k.d>0,isDn=k.d!==null&&k.d<0;
+    const good=k.inv?(isDn?"up":isUp?"dn":"nn"):(isUp?"up":isDn?"dn":"nn");
+    return `<div class="kpi"><div class="kpi-lbl">${k.l}</div><div class="kpi-val">${k.v}</div>${k.d!==null?`<div class="kpi-d ${good}">${isUp?"▲":"▼"} ${Math.abs(k.d).toFixed(1)}% vs ${pp||"ant."}</div>`:""}</div>`;
+  }).join("");
+  const ps12=parsedData.periods.slice(-12);
+  const lbls=ps12.map(p=>p.substring(0,7));
+  const Y="#F5A800",DK="#111111",OK="#1A5C35",DG="#B83232";
+  const opts={responsive:true,plugins:{legend:{labels:{font:{family:"'DM Mono'",size:9},color:"#6B6256",padding:10}},tooltip:{backgroundColor:"#111",titleColor:"#F5A800",bodyColor:"#fff",padding:10,cornerRadius:8}},scales:{x:{ticks:{font:{family:"'DM Mono'",size:8},color:"#888"},grid:{color:"#E8E2D810"}},y:{ticks:{font:{family:"'DM Mono'",size:8},color:"#888"},grid:{color:"#E8E2D830"}}}};
+  Object.values(charts).forEach(c=>c.destroy());charts={};
+  charts.v=new Chart($("c-ventas"),{type:"line",data:{labels:lbls,datasets:[{label:"Ventas",data:ps12.map(p=>Math.round((pd[p]?.ventas||0)/1000)),borderColor:Y,backgroundColor:Y+"20",fill:true,tension:.35,borderWidth:2.5,pointRadius:3,pointBackgroundColor:Y}]},options:opts});
+  charts.m=new Chart($("c-margin"),{type:"line",data:{labels:lbls,datasets:[{label:"M. Bruto",data:ps12.map(p=>pd[p]?.ventas?+((pd[p].utilidadBruta/pd[p].ventas)*100).toFixed(1):0),borderColor:Y,tension:.35,borderWidth:2.5,pointRadius:2,fill:false},{label:"M. Operativo",data:ps12.map(p=>pd[p]?.ventas?+((pd[p].utilidadOperativa/pd[p].ventas)*100).toFixed(1):0),borderColor:DK,tension:.35,borderWidth:2,pointRadius:2,fill:false,borderDash:[4,3]}]},options:{...opts,scales:{...opts.scales,y:{...opts.scales.y,ticks:{...opts.scales.y.ticks,callback:v=>v+"%"}}}}});
+  charts.e=new Chart($("c-ebitda"),{type:"bar",data:{labels:lbls,datasets:[{label:"EBITDA",data:ps12.map(p=>Math.round((pd[p]?.ebitda||0)/1000)),backgroundColor:Y,borderRadius:4},{label:"Ut. Neta",data:ps12.map(p=>Math.round((pd[p]?.utilidadNeta||0)/1000)),backgroundColor:DK+"CC",borderRadius:4}]},options:opts});
+  charts.b=new Chart($("c-balance"),{type:"line",data:{labels:lbls,datasets:[{label:"Activo Cte.",data:ps12.map(p=>Math.round((pd[p]?.activoCorriente||0)/1000)),borderColor:OK,backgroundColor:OK+"18",fill:true,tension:.35,borderWidth:2.5,pointRadius:2},{label:"Pasivo Cte.",data:ps12.map(p=>Math.round((pd[p]?.pasivoCorriente||0)/1000)),borderColor:DG,backgroundColor:DG+"18",fill:true,tension:.35,borderWidth:2,pointRadius:2}]},options:opts});
+}
+
+function updateChatSources(){
+  $("chat-sources").innerHTML=`
+    <div>📊 Excel: <strong style="color:var(--tx)">${latestP||"No cargado"}</strong></div>
+    <div>📄 PDFs ref.: <strong style="color:var(--tx)">${pdfB64s.length} archivo(s)</strong></div>
+    <div style="margin-top:8px;font-size:10px;font-family:'DM Mono';color:var(--tl)">claude-sonnet-4</div>`;
+}
+
+function initUI(){
+  $("sugg-list").innerHTML=SUGGESTED.map(q=>`<button class="sq" onclick="sendChat('${q.replace(/'/g,"\'")}')">${q}</button>`).join("");
+  updateChatSources();
+  renderChat();
+  buildPptUI();
+}
+
+function renderChat(){
+  $("chat-msgs").innerHTML=chatHist.map(m=>`<div class="bub ${m.r==="bot"?"bot":"user"}">${m.t}</div>`).join("");
+  if(chatBusy)$("chat-msgs").innerHTML+=`<div class="bub bot">Analizando...</div>`;
+  $("chat-msgs").scrollTop=$("chat-msgs").scrollHeight;
+}
+
+function chatKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();}}
+
+async function sendChat(q){
+  const question=q||$("chat-in").value.trim();
+  if(!question||chatBusy)return;
+  $("chat-in").value="";
+  chatHist.push({r:"user",t:question});
+  chatBusy=true;renderChat();
+  try{
+    const contentParts=[];
+    if(pdfB64s.length>0){
+      pdfB64s.forEach(pdf=>{
+        contentParts.push({type:"document",source:{type:"base64",media_type:"application/pdf",data:pdf.b64}});
+      });
+    }
+    contentParts.push({role:"user",content:question});
+    const msgs=chatHist.slice(1,-1).map(m=>({role:m.r==="bot"?"assistant":"user",content:m.t}));
+    msgs.push({role:"user",content:contentParts.length>1?contentParts:question});
+    const sys=`Eres analista financiero senior de Ferreyros S.A. (distribuidora Caterpillar, Peru). Responde en espanol, conciso y profesional. Valores en miles de soles (S/000). Periodo mas reciente: ${latestP||"no cargado"}. Periodo anterior: ${prevP||"N/A"}.${excelCtx?`
+
+DATOS FINANCIEROS:
+${excelCtx}`:""}`;
+    const d=await callAPI("claude-sonnet-4-20250514",1500,msgs,sys);
+    const rep=d.content?.map(b=>b.text||"").join("")||"No pude procesar.";
+    chatHist.push({r:"bot",t:rep});
+  }catch(e){chatHist.push({r:"bot",t:"Error: "+e.message});}
+  chatBusy=false;renderChat();
+}
+
+function buildPptUI(){
+  $("ppt-secs").innerHTML=PPT_OPTS.map(([k,l])=>`<div class="chk-row ${pptSecs[k]?"on":""}" onclick="toggleSec('${k}')"><div class="chk-box ${pptSecs[k]?"on":""}" id="cb-${k}">${pptSecs[k]?"✓":""}</div><span class="chk-lbl">${l}</span></div>`).join("");
+}
+
+function toggleSec(k){
+  pptSecs[k]=!pptSecs[k];
+  document.querySelector(`[onclick="toggleSec('${k}')"]`).classList.toggle("on",pptSecs[k]);
+  const cb=$(`cb-${k}`);cb.classList.toggle("on",pptSecs[k]);cb.textContent=pptSecs[k]?"✓":"";
+}
+
+async function generatePPT(){
+  if(pptBusy)return;
+  if(!parsedData&&pdfB64s.length===0){showErr("Primero carga los datos desde el Dashboard");return;}
+  pptBusy=true;
+  $("btn-gen").disabled=true;$("btn-gen").innerHTML='<span class="spin-sm"></span>Generando...';
+  $("ppt-note").style.display="block";$("btn-dl").style.display="none";$("ppt-edit-area").style.display="none";
+  $("slides-area").innerHTML=`<div style="text-align:center;padding:60px 20px;"><div style="width:44px;height:44px;border:3px solid var(--br);border-top-color:var(--y);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 16px;"></div><div style="font-size:13px;color:var(--tm);font-family:'DM Mono',monospace;">Generando presentacion ejecutiva con Sonnet...</div></div>`;
+  try{
+    const secs=PPT_OPTS.filter(([k])=>pptSecs[k]).map(([,v])=>v).join(", ");
+    
+    // Build compact data summary for PPT generation
+    const pd=parsedData?.data||{};
+    const lp=latestP, pp=prevP;
+    const lyp=parsedData?.periods?.find(p=>p!==lp&&p.split(" ")[0]===lp?.split(" ")[0]);
+    
+    function fmtM(n){return n?(n/1000).toFixed(1)+"M":"0M";}
+    function fmtPct(c,p){if(!p||p===0)return"";const d=((c-p)/Math.abs(p)*100);return(d>=0?"+":"")+d.toFixed(1)+"%";}
+    
+    const dataSummary = lp && pd[lp] ? `
+PERIODO: ${lp} | ANTERIOR: ${pp||"N/A"} | MISMO MES ANO ANTERIOR: ${lyp||"N/A"}
+
+ESTADO DE RESULTADOS (S/000):
+Ventas Netas: ${pd[lp]?.ventas||0} | vs ${pp}: ${fmtPct(pd[lp]?.ventas,pd[pp]?.ventas)} | vs ${lyp}: ${fmtPct(pd[lp]?.ventas,pd[lyp]?.ventas)}
+Costo Ventas: ${pd[lp]?.costoVentas||0}
+Utilidad Bruta: ${pd[lp]?.utilidadBruta||0} | MB: ${pd[lp]?.ventas?((pd[lp].utilidadBruta/pd[lp].ventas)*100).toFixed(1)+"%":""}
+Gastos Venta: ${pd[lp]?.gastosVenta||0}
+Gastos Admin: ${pd[lp]?.gastosAdmin||0}
+Utilidad Operativa: ${pd[lp]?.utilidadOperativa||0} | vs ${pp}: ${fmtPct(pd[lp]?.utilidadOperativa,pd[pp]?.utilidadOperativa)}
+EBITDA: ${pd[lp]?.ebitda||0} | vs ${pp}: ${fmtPct(pd[lp]?.ebitda,pd[pp]?.ebitda)}
+Gastos Financieros: ${pd[lp]?.gastosFinancieros||0}
+Utilidad Neta: ${pd[lp]?.utilidadNeta||0} | vs ${pp}: ${fmtPct(pd[lp]?.utilidadNeta,pd[pp]?.utilidadNeta)}
+
+ESTADO DE SITUACION FINANCIERA (S/000):
+Efectivo: ${pd[lp]?.efectivo||0} | vs ${pp}: ${fmtPct(pd[lp]?.efectivo,pd[pp]?.efectivo)}
+CxC Comercial: ${pd[lp]?.cxcComercial||0} | vs ${pp}: ${fmtPct(pd[lp]?.cxcComercial,pd[pp]?.cxcComercial)}
+Inventarios: ${pd[lp]?.inventarios||0} | vs ${pp}: ${fmtPct(pd[lp]?.inventarios,pd[pp]?.inventarios)}
+Total Activo Cte: ${pd[lp]?.activoCorriente||0} | vs ${pp}: ${fmtPct(pd[lp]?.activoCorriente,pd[pp]?.activoCorriente)}
+Total Activo: ${pd[lp]?.totalActivo||0}
+Obligaciones Financieras Cte: ${pd[lp]?.obligacionesFinancieras||0}
+Total Pasivo Cte: ${pd[lp]?.pasivoCorriente||0}
+Total Pasivo: ${pd[lp]?.totalPasivo||0}
+Patrimonio Neto: ${pd[lp]?.patrimonio||0}
+Liquidez: ${pd[lp]?.pasivoCorriente?(pd[lp].activoCorriente/pd[lp].pasivoCorriente).toFixed(2)+"x":"N/A"}
+Deuda/Patrimonio: ${pd[lp]?.patrimonio?(pd[lp].totalPasivo/pd[lp].patrimonio).toFixed(2)+"x":"N/A"}` : "Sin datos cargados";
+
+    const msgContent=[{role:"user",content:`Eres analista financiero senior de Ferreyros S.A. (distribuidora Caterpillar, Peru). Genera una presentacion ejecutiva para el Comite de Finanzas.
+
+${dataSummary}
+
+SECCIONES: ${secs}
+
+Devuelve SOLO JSON valido sin texto ni backticks:
+{"title":"Comite Finanzas - ${latestP||""}","periodo":"${latestP||""}","resumen_ejecutivo":"2-3 parrafos ejecutivos con los principales hallazgos del periodo, variaciones y contexto","slides":[{"numero":1,"titulo":"titulo lamina","subtitulo":"subtitulo","tabla":[{"rubro":"nombre rubro","actual":"S/. XXM","anterior":"S/. XXM","variacion":"+/-S/. XXM","pct":"+/-X%","tipo":"positiva|negativa|neutral"}],"comentarios":["comentario ejecutivo especifico con numeros y causas de variacion"]}]}
+
+Genera 8-10 laminas. Se especifico con numeros reales. Comenta causas de variaciones.`}];
+    const d=await callAPI("claude-sonnet-4-20250514",4000,msgContent);
+    const txt=d.content?.map(b=>b.text||"").join("")||"";
+    const clean=txt.split("```json").join("").split("```").join("").trim();
+    const s=clean.indexOf("{"),e=clean.lastIndexOf("}");
+    pptData=JSON.parse(clean.slice(s,e+1));
+    editHist=[];
+    renderSlides();
+    $("ppt-hdr-ttl").textContent=pptData.title;
+    $("ppt-hdr-sub").textContent=`${pptData.slides?.length||0} laminas generadas`;
+    $("btn-dl").style.display="flex";$("ppt-edit-area").style.display="block";
+    renderEditChat();
+  }catch(err){
+    $("slides-area").innerHTML=`<div class="no-data"><div class="no-data-icon">⚠</div><div>${err.message}</div></div>`;
+    showErr("Error: "+err.message);
+  }
+  pptBusy=false;$("btn-gen").disabled=false;$("btn-gen").innerHTML="Generar Presentacion";$("ppt-note").style.display="none";
+}
+
+function renderSlides(){
+  if(!pptData?.slides?.length){$("slides-area").innerHTML=`<div class="no-data"><div class="no-data-icon">📑</div>Sin laminas</div>`;return;}
+  let html=`<div style="background:var(--dk);border-radius:10px;padding:18px 20px;margin-bottom:4px;"><div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--y);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">Resumen Ejecutivo</div><div style="font-size:13px;color:#bbb;line-height:1.8;">${pptData.resumen_ejecutivo||""}</div></div>`;
+  pptData.slides?.forEach(slide=>{
+    html+=`<div class="slide"><div class="slide-hdr"><span class="slide-num">LAMINA ${slide.numero}</span><span class="slide-ttl">${slide.titulo}</span></div><div class="slide-body">`;
+    if(slide.subtitulo)html+=`<div class="slide-sub">${slide.subtitulo}</div>`;
+    if(slide.tabla?.length){
+      html+=`<table class="slide-tbl"><thead><tr><th>Rubro</th><th style="text-align:right">Actual</th><th style="text-align:right">Anterior</th><th style="text-align:right">Variacion</th></tr></thead><tbody>`;
+      slide.tabla.forEach(row=>{const cls=row.tipo==="positiva"?"td-ok":row.tipo==="negativa"?"td-dg":"td-nn";html+=`<tr><td style="font-weight:500;color:var(--tx)">${row.rubro}</td><td class="td-nn" style="text-align:right">${row.actual||"—"}</td><td class="td-nn" style="text-align:right">${row.anterior||"—"}</td><td class="${cls}" style="text-align:right">${row.variacion||"—"} ${row.pct?`<span style="font-size:9px;opacity:.7">(${row.pct})</span>`:""}</td></tr>`;});
+      html+=`</tbody></table>`;
+    }
+    if(slide.comentarios?.length){html+=`<div class="slide-cmts"><div class="slide-cmts-lbl">Comentarios</div>${slide.comentarios.map(c=>`<div class="slide-cmt">${c}</div>`).join("")}</div>`;}
+    html+=`</div></div>`;
+  });
+  $("slides-area").innerHTML=html;
+}
+
+function renderEditChat(){
+  $("ppt-edit-msgs").innerHTML=editHist.map(m=>`<div class="bub ${m.r==="bot"?"bot":"user"}" style="font-size:12px;padding:9px 13px;">${m.t}</div>`).join("");
+  if(editBusy)$("ppt-edit-msgs").innerHTML+=`<div class="bub bot" style="font-size:12px;">Aplicando cambios...</div>`;
+  $("ppt-edit-msgs").scrollTop=$("ppt-edit-msgs").scrollHeight;
+}
+
+function editKey(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendEdit();}}
+
+async function sendEdit(){
+  const q=$("ppt-edit-in").value.trim();
+  if(!q||editBusy||!pptData)return;
+  $("ppt-edit-in").value="";
+  editHist.push({r:"user",t:q});editBusy=true;$("btn-edit-send").disabled=true;renderEditChat();
+  try{
+    const d=await callAPI("claude-haiku-4-5-20251001",4000,[{role:"user",content:`Eres editor de presentaciones financieras de Ferreyros S.A. Aplica los cambios solicitados a la presentacion.
+PRESENTACION ACTUAL: ${JSON.stringify(pptData)}
+CAMBIO SOLICITADO: "${q}"
+Devuelve el JSON COMPLETO actualizado con exactamente la misma estructura. SOLO el JSON, sin texto adicional ni backticks.`}]);
+    const txt=d.content?.map(b=>b.text||"").join("")||"";
+    const clean=txt.split("```json").join("").split("```").join("").trim();
+    const s=clean.indexOf("{"),e=clean.lastIndexOf("}");
+    pptData=JSON.parse(clean.slice(s,e+1));
+    renderSlides();
+    editHist.push({r:"bot",t:"Cambios aplicados. Puedes descargar la presentacion actualizada."});
+  }catch(e){editHist.push({r:"bot",t:"Error: "+e.message});}
+  editBusy=false;$("btn-edit-send").disabled=false;renderEditChat();
+}
+
+function downloadPPTX(){
+  if(!pptData)return;
+  const pptx=new PptxGenJS();
+  pptx.layout="LAYOUT_WIDE";pptx.title=pptData.title;
+  const Y="#F5A800",DK="#111111",GRAY="#F1EDE6",WHITE="#FFFFFF",TEXT="#111111",MUTED="#6B6256";
+  const ts=pptx.addSlide();ts.background={color:DK};
+  ts.addShape(pptx.ShapeType.rect,{x:0,y:0,w:2.8,h:"100%",fill:{color:Y}});
+  ts.addText("+Ferreyros",{x:.2,y:1.8,w:2.2,h:.8,fontSize:36,bold:true,color:DK,fontFace:"Arial Black"});
+  ts.addText("COMITE DE FINANZAS",{x:3.2,y:1.6,w:6.5,h:.6,fontSize:28,bold:true,color:WHITE,fontFace:"Arial"});
+  ts.addText(pptData.periodo||"",{x:3.2,y:2.4,w:6.5,h:.5,fontSize:18,color:Y,fontFace:"Arial"});
+  ts.addText("Analisis de Resultados Financieros",{x:3.2,y:3.1,w:6.5,h:.4,fontSize:14,color:"#888888",fontFace:"Arial",italic:true});
+  if(pptData.resumen_ejecutivo){
+    const rs=pptx.addSlide();rs.background={color:WHITE};
+    rs.addShape(pptx.ShapeType.rect,{x:0,y:0,w:"100%",h:.12,fill:{color:Y}});
+    rs.addText("RESUMEN EJECUTIVO",{x:.4,y:.25,w:9,h:.5,fontSize:22,bold:true,color:DK,fontFace:"Arial Black"});
+    rs.addShape(pptx.ShapeType.rect,{x:.4,y:.85,w:9.2,h:3.8,fill:{color:GRAY},line:{color:"#DDD7CB",pt:1}});
+    rs.addText(pptData.resumen_ejecutivo,{x:.6,y:.95,w:8.8,h:3.6,fontSize:13,color:TEXT,fontFace:"Arial",valign:"top",wrap:true});
+    rs.addShape(pptx.ShapeType.rect,{x:0,y:5.38,w:"100%",h:.12,fill:{color:Y}});
+  }
+  pptData.slides?.forEach(slide=>{
+    const sl=pptx.addSlide();sl.background={color:WHITE};
+    sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:"100%",h:.12,fill:{color:Y}});
+    sl.addShape(pptx.ShapeType.rect,{x:0,y:0,w:.08,h:"100%",fill:{color:DK}});
+    sl.addText(`${slide.numero<10?"0"+slide.numero:slide.numero}`,{x:.15,y:.2,w:.6,h:.35,fontSize:9,color:Y,fontFace:"Courier New",bold:true});
+    sl.addText(slide.titulo.toUpperCase(),{x:.4,y:.2,w:9.2,h:.4,fontSize:18,bold:true,color:DK,fontFace:"Arial Black"});
+    if(slide.subtitulo)sl.addText(slide.subtitulo,{x:.4,y:.65,w:9.2,h:.25,fontSize:10,color:MUTED,fontFace:"Arial",italic:true});
+    let yPos=slide.subtitulo?.length>0?.95:.85;
+    if(slide.tabla?.length){
+      const rows=[[{text:"RUBRO",options:{bold:true,fontSize:9,color:WHITE,fill:{color:DK},fontFace:"Arial"}},{text:"ACTUAL",options:{bold:true,fontSize:9,color:WHITE,fill:{color:DK},fontFace:"Arial",align:"right"}},{text:"ANTERIOR",options:{bold:true,fontSize:9,color:WHITE,fill:{color:DK},fontFace:"Arial",align:"right"}},{text:"VARIACION",options:{bold:true,fontSize:9,color:WHITE,fill:{color:DK},fontFace:"Arial",align:"right"}}],...slide.tabla.map((row,i)=>[{text:row.rubro,options:{fontSize:9,color:TEXT,fill:{color:i%2===0?WHITE:GRAY},fontFace:"Arial",bold:true}},{text:row.actual||"—",options:{fontSize:9,color:MUTED,fill:{color:i%2===0?WHITE:GRAY},fontFace:"Courier New",align:"right"}},{text:row.anterior||"—",options:{fontSize:9,color:MUTED,fill:{color:i%2===0?WHITE:GRAY},fontFace:"Courier New",align:"right"}},{text:(row.variacion||"—")+(row.pct?` (${row.pct})`:""),options:{fontSize:9,color:row.tipo==="positiva"?"#1A5C35":row.tipo==="negativa"?"#B83232":MUTED,fill:{color:i%2===0?WHITE:GRAY},fontFace:"Courier New",align:"right",bold:true}}])];
+      const tblH=Math.min(.32*rows.length,2.8);
+      sl.addTable(rows,{x:.4,y:yPos,w:9.2,h:tblH,rowH:.3,border:{pt:1,color:"#DDD7CB"},colW:[3.5,1.8,1.8,2.1]});
+      yPos+=tblH+.15;
+    }
+    if(slide.comentarios?.length){
+      const cmtH=Math.min(slide.comentarios.length*.32+.35,5.5-yPos);
+      sl.addShape(pptx.ShapeType.rect,{x:.4,y:yPos,w:9.2,h:cmtH,fill:{color:"#FFF8E1"},line:{color:Y,pt:2}});
+      sl.addText(slide.comentarios.map(c=>"• "+c).join("\n"),{x:.55,y:yPos+.08,w:9,h:cmtH-.15,fontSize:9.5,color:"#3D3830",fontFace:"Arial",valign:"top",wrap:true});
+    }
+    sl.addShape(pptx.ShapeType.rect,{x:0,y:5.38,w:"100%",h:.12,fill:{color:Y}});
+    sl.addText(pptData.title,{x:.4,y:5.28,w:9,h:.12,fontSize:7.5,color:MUTED,fontFace:"Arial"});
+  });
+  const bc=pptx.addSlide();bc.background={color:DK};
+  bc.addShape(pptx.ShapeType.rect,{x:0,y:0,w:2.8,h:"100%",fill:{color:Y}});
+  bc.addText("+Ferreyros",{x:.2,y:2.3,w:2.2,h:.7,fontSize:30,bold:true,color:DK,fontFace:"Arial Black"});
+  bc.addText("FERREYROS S.A.",{x:3.2,y:2,w:6.5,h:.6,fontSize:24,bold:true,color:WHITE,fontFace:"Arial"});
+  bc.addText("Una Empresa Ferreycorp",{x:3.2,y:2.7,w:6.5,h:.4,fontSize:13,color:"#888",fontFace:"Arial",italic:true});
+  bc.addText(pptData.periodo||"",{x:3.2,y:3.4,w:6.5,h:.35,fontSize:12,color:Y,fontFace:"Arial"});
+  pptx.writeFile({fileName:`Ferreyros_Comite_${(pptData.periodo||"").replace(/\s/g,"_")}.pptx`});
+}
+window.addEventListener("DOMContentLoaded",()=>{show("sec-login");initAuth();});
+</script>
+</body>
+</html>
